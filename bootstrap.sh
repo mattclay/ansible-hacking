@@ -33,13 +33,13 @@ case ${ID} in
             git \
             python \
             python-setuptools \
+            python-crypto \
             python-six \
             python-yaml \
             python-jinja2 \
             python-nose \
             python-mock \
             python-coverage \
-            python-crypto \
             python-redis \
             python-memcache \
             python-passlib \
@@ -60,13 +60,13 @@ case ${ID} in
             git \
             python \
             python-setuptools \
+            python-crypto${CRYPTO_VERSION} \
             python-six \
             PyYAML \
             python-jinja2 \
             python-nose${SKIP_NOSE} \
             python-mock${SKIP_MOCK} \
             python-coverage${SKIP_COVERAGE} \
-            python-crypto${CRYPTO_VERSION} \
             python-redis${SKIP_REDIS} \
             python-memcached \
             python-passlib \
