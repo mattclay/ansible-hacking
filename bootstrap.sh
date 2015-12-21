@@ -1,110 +1,254 @@
 #!/bin/sh
+# Set up your environment with everything needed for Ansible dev and testing.
 
-OS_RELEASE="/etc/os-release"
+# FIXME: need to install curl (if missing) before downloading pip (if needed)
 
-if [ -f ${OS_RELEASE} ]; then
-    . ${OS_RELEASE}
-elif [ -f /etc/centos-release ]; then
-    ID=centos # CentOS 6 support
-    CRYPTO_VERSION=2.6 # Newer EPEL version required
-    SKIP_NOSE='skip'
-    SKIP_COVERAGE='skip'
-    SKIP_MOCK='skip'
-    SKIP_REDIS='skip'
-    PIP_PACKAGES="
-        nose
-        coverage
-        mock
-        redis
-        unittest2
-    "
-else
-    echo "Platform not detected due to lack of file:" ${OS_RELEASE}
+process_args() {
+  while [ "$1" != "" ]; do
+    case $1 in
+      "os")
+        mode="os"
+        ;;
+      "pip")
+        mode="pip"
+        ;;
+      "-y" | "--assumeyes")
+        auto="-y"
+        ;;
+      "-q" | "--quiet")
+        quiet="-q"
+        ;;
+      "-h" | "--help")
+        help=1
+        ;;
+      *)
+        echo "Unknown argument:" $1
+        exit 1
+        ;;
+    esac
+    shift
+  done
+
+  if [ "${mode}" = "" ]; then
+    help=1
+  fi
+}
+
+show_help() {
+  if [ ! ${help} ]; then return; fi
+
+  cat <<- EOF
+Usage: bootstrap.sh command [options]
+
+Commands:
+
+  os                Install all packages using OS package management.
+                    Python pip will not be used to install any packages.
+
+  pip               Install Python packages (except crypto) using pip.
+                    Install non-Python packages with OS package management.
+
+Options:
+
+  -y, --assumeyes   Assume yes for all questions and do not prompt.
+  -q, --quiet       Show minimal output.
+  -h, --help        Show this help message and exit.
+
+EOF
+
+  exit 1
+}
+
+detect_platform() {
+  if [ -f /etc/os-release ]; then
+    . /etc/os-release
+  elif [ -f /etc/centos-release ]; then
+    # detect CentOS 6 and earlier
+    ID=centos
+    VERSION_ID=`cat /etc/centos-release | grep -o '[0-9]' | head -n 1`
+  elif [ -f /etc/redhat-release ]; then
+    # detect RHEL 6 and earlier
+    ID=rhel
+    VERSION_ID=`cat /etc/redhat-release | grep -o '[0-9]' | head -n 1`
+  else
+    echo "Platform not detected. No supported '/etc/*-release' file found."
     exit 1
-fi
+  fi
 
-echo "Platform:" ${ID}
+  echo "Platform:" ${ID}
+  echo " Version:" ${VERSION_ID}
+}
 
-case ${ID} in
+apt_setup() {
+  packages="
+    make
+    git
+    python
+    python-crypto
+  "
+
+  echo "Installing required OS packages:" ${packages}
+  apt-get ${quiet} ${auto} install ${packages} || exit 1
+}
+
+yum_setup() {
+  install_epel=$1
+  crypto_version=$2
+
+  if [ $install_epel ]; then epel_package="epel-release"; fi
+  if [ ! $crypto_version ]; then crypto_package="python-crypto"; fi
+
+  packages="
+    which
+    make
+    git
+    python
+    ${crypto_package}
+    ${epel_package}
+  "
+
+  echo "Installing required OS packages:" ${packages}
+  yum ${quiet} ${auto} install ${packages} || exit 1
+
+  if [ $crypto_version ]; then
+    # EPEL must be installed before the updated python-crypto version
+    yum ${quiet} ${auto} install python-crypto${crypto_version}
+    # The EPEL python-crypto package isn't usable after installation.
+    # A symlink is needed to support "import Crypto".
+    # A symlink is needed to make the package visible to "pip list".
+    pc_path=$(rpm -q -l "python-crypto${crypto_version}" | grep '/Crypto$')
+    pc_rpath=$(echo "${pc_path}" | sed 's|^.*/site-packages/||')
+    pkg_path=$(echo "${pc_path}" | sed 's|/site-packages/.*$|/site-packages/|')
+    crypto_path="${pkg_path}Crypto"
+    pkginfo_path=$(echo "${pc_rpath}" | sed 's|/Crypto$||')"/EGG-INFO/PKG-INFO"
+    egginfo_path=$(echo "${pc_path}" | sed 's|/Crypto$||')"-info"
+    if [ ! -e "${crypto_path}" ] && 
+       [ ! -e "${egginfo_path}" ] &&
+       [ -d "${pc_rpath}" ] &&
+       [ -f "${pkginfo_path}" ]; then
+      echo "Creating symlinks for crypto module version ${crypto_version}."
+      ln -s "${pc_rpath}" "${crypto_path}" || exit 1
+      ln -s "${pkginfo_path}" "${egginfo_path}" || exit 1
+    fi
+  fi
+}
+
+yum_epel_setup() {
+  name=$1
+  version=$2
+  if [ ${VERSION_ID} -le ${version} ]; then
+    if [ "${mode}" = "os" ]; then
+      echo "${name} ${version} and earlier packages are too old."
+      echo "Installation via pip required using: bootstrap.sh pip"
+      exit 1
+    fi
+    # EPEL required for python-crypto without a C compiler
+    install_epel=1
+    crypto_version="2.6"
+  elif [ "${mode}" = "os" ]; then
+    # EPEL required for the necessary OS packages for Python
+    install_epel=1
+  fi
+  yum_setup ${install_epel} ${crypto_version}
+}
+
+apt_packages() {
+  if [ "$mode" != "os" ]; then return; fi
+
+  echo -n "Checking available OS packages ... "
+  packages=$(apt-cache ${quiet} show \
+    python-six \
+    python-yaml \
+    python-jinja2 \
+    python-nose \
+    python-mock \
+    python-coverage \
+    python-redis \
+    python-memcache \
+    python-passlib \
+    python-systemd \
+    | grep  '^Package: ' \
+    | sed 's/^Package: //')
+  echo "done"
+  echo "Installing OS packages:" ${packages}
+  apt-get ${quiet} ${auto} install ${packages} || exit 1
+}
+
+yum_packages() {
+  if [ "$mode" != "os" ]; then return; fi
+
+  echo -n "Checking available OS packages ... "
+  packages=$(yum ${quiet} ${auto} info \
+    python-six \
+    PyYAML \
+    python-jinja2 \
+    python-nose \
+    python-mock \
+    python-coverage \
+    python-redis \
+    python-memcached \
+    python-passlib \
+    systemd-python \
+    | grep  '^Name *: ' \
+    | sed 's/^Name *: //')
+  echo "done"
+  echo "Installing OS packages:" ${packages}
+  yum ${quiet} ${auto} install ${packages} || exit 1
+}
+
+pip_setup() {
+  if [ "${mode}" != "pip" ]; then return; fi
+
+  which pip > /dev/null
+
+  if [ $? -ne 0 ]; then
+    if [ "${quiet}" ]; then silent="--silent --show-error"; fi
+    echo "Downloading and installing pip..."
+    curl ${silent} "https://bootstrap.pypa.io/get-pip.py" || exit 1 \
+      | python || exit 1
+  fi
+
+  packages="
+    six
+    PyYAML
+    Jinja2
+    nose
+    mock
+    coverage
+    redis
+    python-memcached
+    passlib
+    python-systemd
+  "
+
+  echo "Installing pip packages:" ${packages} 
+  pip ${quiet} install ${packages} || exit 1
+}
+
+os_setup() {
+  case ${ID} in
     ubuntu)
-        echo -n "Checking available packages ... "
-        PACKAGES=`apt-cache show \
-            make \
-            git \
-            python \
-            python-setuptools \
-            python-crypto \
-            python-six \
-            python-yaml \
-            python-jinja2 \
-            python-nose \
-            python-mock \
-            python-coverage \
-            python-redis \
-            python-memcache \
-            python-passlib \
-            python-systemd \
-            | grep  '^Package: ' \
-            | sed 's/^Package: //'`
-        echo "done"
-        echo "Available packages:" ${PACKAGES}
-        apt-get -y install ${PACKAGES}
-        ;;
+      apt_setup
+      apt_packages
+      ;;
     centos)
-        echo "Installing epel-release for additional package support."
-        yum --quiet --assumeyes install epel-release
-        echo -n "Checking available packages ... "
-        PACKAGES=`yum --quiet info \
-            which \
-            make \
-            git \
-            python \
-            python-setuptools \
-            python-crypto${CRYPTO_VERSION} \
-            python-six \
-            PyYAML \
-            python-jinja2 \
-            python-nose${SKIP_NOSE} \
-            python-mock${SKIP_MOCK} \
-            python-coverage${SKIP_COVERAGE} \
-            python-redis${SKIP_REDIS} \
-            python-memcached \
-            python-passlib \
-            systemd-python \
-            | grep  '^Name *: ' \
-            | sed 's/^Name *: //'`
-        echo "done"
-        echo "Available packages:" ${PACKAGES}
-        yum --quiet --assumeyes install ${PACKAGES}
-        if [ "${CRYPTO_VERSION}" != "" ]; then
-            # Use the EPEL python-crypto module for the Crypto import.
-            CRYPTO_FULL_PATH=`rpm -q -l "python-crypto${CRYPTO_VERSION}" | grep '/Crypto$'`
-            CRYPTO_RELATIVE_PATH=`echo "${CRYPTO_FULL_PATH}" | sed 's|^.*/site-packages/||'`
-            PACKAGES_PATH=`echo "${CRYPTO_FULL_PATH}" | sed 's|/site-packages/.*$|/site-packages/|'`
-            PACKAGES_CRYPTO_PATH="${PACKAGES_PATH}Crypto"
-            PKGINFO_PATH=`echo "${CRYPTO_RELATIVE_PATH}" | sed 's|/Crypto$||'`"/EGG-INFO/PKG-INFO"
-            EGGINFO_PATH=`echo "${CRYPTO_FULL_PATH}" | sed 's|/Crypto$||'`"-info"
-            if [ ! -e "${PACKAGES_CRYPTO_PATH}" ]; then
-                echo "Creating symbolic links for python-crypto module version ${CRYPTO_VERSION}"
-                # make "import Crypto" work
-                ln -s "${CRYPTO_RELATIVE_PATH}" "${PACKAGES_CRYPTO_PATH}"
-                # make "pip list" show pycrypto package
-                ln -s "${PKGINFO_PATH}" "${EGGINFO_PATH}"
-            fi
-        fi
-        if [ "${PIP_PACKAGES}" != "" ]; then
-            echo "Installing packages via pip:" ${PIP_PACKAGES} 
-            easy_install pip
-            pip install ${PIP_PACKAGES}
-        fi
-        ;;
+      yum_epel_setup "CentOS" 6
+      yum_packages
+      ;;
+    rhel)
+      yum_epel_setup "RHEL" 6
+      yum_packages
+      ;;
     *)
-        echo "Unsupported platform:" ${ID}
-        exit 2
-        ;;
-esac
+      echo "Unsupported platform:" ${ID}
+      exit 1
+      ;;
+  esac
 
-cat <<- EOF
+}
+
+success_message() {
+  cat <<- EOF
 
 You're almost ready to start hacking on Ansible...
 
@@ -123,3 +267,17 @@ In each shell you use, run the following from your ansible directory:
 That's it!
 
 EOF
+}
+
+main() {
+  process_args "$@"
+  show_help
+  detect_platform
+  os_setup
+  pip_setup
+  success_message
+}
+
+main "$@"
+
+exit 0
