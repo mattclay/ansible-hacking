@@ -82,9 +82,14 @@ case ${ID} in
             CRYPTO_RELATIVE_PATH=`echo "${CRYPTO_FULL_PATH}" | sed 's|^.*/site-packages/||'`
             PACKAGES_PATH=`echo "${CRYPTO_FULL_PATH}" | sed 's|/site-packages/.*$|/site-packages/|'`
             PACKAGES_CRYPTO_PATH="${PACKAGES_PATH}Crypto"
+            PKGINFO_PATH=`echo "${CRYPTO_RELATIVE_PATH}" | sed 's|/Crypto$||'`"/EGG-INFO/PKG-INFO"
+            EGGINFO_PATH=`echo "${CRYPTO_FULL_PATH}" | sed 's|/Crypto$||'`"-info"
             if [ ! -e "${PACKAGES_CRYPTO_PATH}" ]; then
-                echo "Creating symbolic link for python-crypto module version ${CRYPTO_VERSION}"
+                echo "Creating symbolic links for python-crypto module version ${CRYPTO_VERSION}"
+                # make "import Crypto" work
                 ln -s "${CRYPTO_RELATIVE_PATH}" "${PACKAGES_CRYPTO_PATH}"
+                # make "pip list" show pycrypto package
+                ln -s "${PKGINFO_PATH}" "${EGGINFO_PATH}"
             fi
         fi
         if [ "${PIP_PACKAGES}" != "" ]; then
