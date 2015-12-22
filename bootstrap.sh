@@ -33,7 +33,7 @@ process_args() {
 }
 
 show_help() {
-  if [ ! "${help}" ]; then return; fi
+  if [ ! ${help} ]; then return; fi
 
   cat <<- EOF
 Usage: bootstrap.sh command [options]
