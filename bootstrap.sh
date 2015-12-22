@@ -204,9 +204,13 @@ pip_setup() {
   if [ ${mode} != "pip" ]; then return; fi
 
   if [ ! ${have_pip} ]; then
-    if [ ${quiet} ]; then silent="--silent --show-error"; fi
+    if [ ${quiet} ]; then
+      silent="--silent"
+      show_error="--show-error"
+    fi
+    url="https://bootstrap.pypa.io/get-pip.py"
     echo "Downloading and installing pip..."
-    curl "${silent}" "https://bootstrap.pypa.io/get-pip.py" | python || exit 1
+    curl ${silent} ${show_error} ${url} | python || exit 1
   fi
 
   python_version=$(python --version 2>&1 | grep -o '[0-9]\.[0-9]')
