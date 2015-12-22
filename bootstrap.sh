@@ -1,11 +1,9 @@
 #!/bin/sh
 # Set up your environment with everything needed for Ansible dev and testing.
 
-# FIXME: need to install curl (if missing) before downloading pip (if needed)
-
 process_args() {
-  while [ "$1" != "" ]; do
-    case $1 in
+  while [ "$1" ]; do
+    case "$1" in
       "os")
         mode="os"
         ;;
@@ -22,20 +20,20 @@ process_args() {
         help=1
         ;;
       *)
-        echo "Unknown argument:" $1
+        echo "Unknown argument: $1"
         exit 1
         ;;
     esac
     shift
   done
 
-  if [ "${mode}" = "" ]; then
+  if [ ! ${mode} ]; then
     help=1
   fi
 }
 
 show_help() {
-  if [ ! ${help} ]; then return; fi
+  if [ ! "${help}" ]; then return; fi
 
   cat <<- EOF
 Usage: bootstrap.sh command [options]
@@ -65,24 +63,30 @@ detect_platform() {
   elif [ -f /etc/centos-release ]; then
     # detect CentOS 6 and earlier
     ID=centos
-    VERSION_ID=`cat /etc/centos-release | grep -o '[0-9]' | head -n 1`
+    VERSION_ID=$(grep -o '[0-9]' /etc/centos-release | head -n 1)
   elif [ -f /etc/redhat-release ]; then
     # detect RHEL 6 and earlier
     ID=rhel
-    VERSION_ID=`cat /etc/redhat-release | grep -o '[0-9]' | head -n 1`
+    VERSION_ID=$(grep -o '[0-9]' /etc/redhat-release | head -n 1)
   else
     echo "Platform not detected. No supported '/etc/*-release' file found."
     exit 1
   fi
 
-  echo "Platform:" ${ID}
-  echo " Version:" ${VERSION_ID}
+  pip  --version > /dev/null 2>&1 && have_pip=1
+  curl --version > /dev/null 2>&1 && have_curl=1
+
+  echo "Platform: ${ID}"
+  echo " Version: ${VERSION_ID}"
 }
 
 apt_setup() {
+  if [ "${install_curl}" ]; then curl_package="curl"; fi
+
   packages="
     make
     git
+    ${curl_package}
     python
     python-crypto
   "
@@ -92,27 +96,29 @@ apt_setup() {
 }
 
 yum_setup() {
-  install_epel=$1
-  crypto_version=$2
+  install_epel="$1"
+  crypto_version="$2"
 
-  if [ $install_epel ]; then epel_package="epel-release"; fi
-  if [ ! $crypto_version ]; then crypto_package="python-crypto"; fi
+  if [ "${install_curl}" ]; then curl_package="curl"; fi
+  if [ "${install_epel}" ]; then epel_package="epel-release"; fi
+  if [ ! "${crypto_version}" ]; then crypto_package="python-crypto"; fi
 
   packages="
+    ${epel_package}
     which
     make
     git
+    ${curl_package}
     python
     ${crypto_package}
-    ${epel_package}
   "
 
   echo "Installing required OS packages:" ${packages}
   yum ${quiet} ${auto} install ${packages} || exit 1
 
-  if [ $crypto_version ]; then
+  if [ "${crypto_version}" ]; then
     # EPEL must be installed before the updated python-crypto version
-    yum ${quiet} ${auto} install python-crypto${crypto_version}
+    yum ${quiet} ${auto} install "python-crypto${crypto_version}"
     # The EPEL python-crypto package isn't usable after installation.
     # A symlink is needed to support "import Crypto".
     # A symlink is needed to make the package visible to "pip list".
@@ -124,8 +130,8 @@ yum_setup() {
     egginfo_path=$(echo "${pc_path}" | sed 's|/Crypto$||')"-info"
     if [ ! -e "${crypto_path}" ] && 
        [ ! -e "${egginfo_path}" ] &&
-       [ -d "${pc_rpath}" ] &&
-       [ -f "${pkginfo_path}" ]; then
+       [ -d "${pkg_path}/${pc_rpath}" ] &&
+       [ -f "${pkg_path}/${pkginfo_path}" ]; then
       echo "Creating symlinks for crypto module version ${crypto_version}."
       ln -s "${pc_rpath}" "${crypto_path}" || exit 1
       ln -s "${pkginfo_path}" "${egginfo_path}" || exit 1
@@ -134,10 +140,10 @@ yum_setup() {
 }
 
 yum_epel_setup() {
-  name=$1
-  version=$2
-  if [ ${VERSION_ID} -le ${version} ]; then
-    if [ "${mode}" = "os" ]; then
+  name="$1"
+  version="$2"
+  if [ "${VERSION_ID}" -le "${version}" ]; then
+    if [ ${mode} = "os" ]; then
       echo "${name} ${version} and earlier packages are too old."
       echo "Installation via pip required using: bootstrap.sh pip"
       exit 1
@@ -145,17 +151,17 @@ yum_epel_setup() {
     # EPEL required for python-crypto without a C compiler
     install_epel=1
     crypto_version="2.6"
-  elif [ "${mode}" = "os" ]; then
+  elif [ ${mode} = "os" ]; then
     # EPEL required for the necessary OS packages for Python
     install_epel=1
   fi
-  yum_setup ${install_epel} ${crypto_version}
+  yum_setup "${install_epel}" "${crypto_version}"
 }
 
 apt_packages() {
-  if [ "$mode" != "os" ]; then return; fi
+  if [ ${mode} != "os" ]; then return; fi
 
-  echo -n "Checking available OS packages ... "
+  echo "Checking available OS packages ... "
   packages=$(apt-cache ${quiet} show \
     python-six \
     python-yaml \
@@ -169,15 +175,14 @@ apt_packages() {
     python-systemd \
     | grep  '^Package: ' \
     | sed 's/^Package: //')
-  echo "done"
   echo "Installing OS packages:" ${packages}
   apt-get ${quiet} ${auto} install ${packages} || exit 1
 }
 
 yum_packages() {
-  if [ "$mode" != "os" ]; then return; fi
+  if [ ${mode} != "os" ]; then return; fi
 
-  echo -n "Checking available OS packages ... "
+  echo "Checking available OS packages ... "
   packages=$(yum ${quiet} ${auto} info \
     python-six \
     PyYAML \
@@ -191,21 +196,17 @@ yum_packages() {
     systemd-python \
     | grep  '^Name *: ' \
     | sed 's/^Name *: //')
-  echo "done"
   echo "Installing OS packages:" ${packages}
   yum ${quiet} ${auto} install ${packages} || exit 1
 }
 
 pip_setup() {
-  if [ "${mode}" != "pip" ]; then return; fi
+  if [ ${mode} != "pip" ]; then return; fi
 
-  which pip > /dev/null
-
-  if [ $? -ne 0 ]; then
-    if [ "${quiet}" ]; then silent="--silent --show-error"; fi
+  if [ ! ${have_pip} ]; then
+    if [ ${quiet} ]; then silent="--silent --show-error"; fi
     echo "Downloading and installing pip..."
-    curl ${silent} "https://bootstrap.pypa.io/get-pip.py" || exit 1 \
-      | python || exit 1
+    curl "${silent}" "https://bootstrap.pypa.io/get-pip.py" | python || exit 1
   fi
 
   packages="
@@ -226,7 +227,11 @@ pip_setup() {
 }
 
 os_setup() {
-  case ${ID} in
+  if [ ${mode} = "pip" ] && [ ! ${have_pip} ] && [ ! ${have_curl} ]; then
+    install_curl=1
+  fi
+
+  case "${ID}" in
     ubuntu)
       apt_setup
       apt_packages
@@ -240,7 +245,7 @@ os_setup() {
       yum_packages
       ;;
     *)
-      echo "Unsupported platform:" ${ID}
+      echo "Unsupported platform: ${ID}"
       exit 1
       ;;
   esac
