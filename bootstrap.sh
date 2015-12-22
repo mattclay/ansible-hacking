@@ -209,6 +209,10 @@ pip_setup() {
     curl "${silent}" "https://bootstrap.pypa.io/get-pip.py" | python || exit 1
   fi
 
+  python_version=$(python --version 2>&1 | grep -o '[0-9]\.[0-9]')
+
+  if [ "${python_version}" = "2.6" ]; then unittest2_package="unittest2"; fi
+
   packages="
     six
     PyYAML
@@ -220,6 +224,7 @@ pip_setup() {
     python-memcached
     passlib
     python-systemd
+    $unittest2_package
   "
 
   echo "Installing pip packages:" ${packages} 
