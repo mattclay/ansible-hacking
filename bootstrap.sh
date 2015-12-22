@@ -163,6 +163,7 @@ apt_packages() {
 
   echo "Checking available OS packages ... "
   packages=$(apt-cache ${quiet} show \
+    python-setuptools \
     python-six \
     python-yaml \
     python-jinja2 \
@@ -184,6 +185,7 @@ yum_packages() {
 
   echo "Checking available OS packages ... "
   packages=$(yum ${quiet} ${auto} info \
+    python-setuptools \
     python-six \
     PyYAML \
     python-jinja2 \
