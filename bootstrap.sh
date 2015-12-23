@@ -247,6 +247,10 @@ os_setup() {
       apt_setup
       apt_packages
       ;;
+    debian)
+      apt_setup
+      apt_packages
+      ;;
     centos)
       yum_epel_setup "CentOS" 6
       yum_packages
