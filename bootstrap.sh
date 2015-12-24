@@ -76,6 +76,8 @@ detect_platform() {
   pip  --version > /dev/null 2>&1 && have_pip=1
   curl --version > /dev/null 2>&1 && have_curl=1
 
+  yum="yum"
+
   echo "Platform: ${ID}"
   echo " Version: ${VERSION_ID}"
 }
@@ -114,11 +116,11 @@ yum_setup() {
   "
 
   echo "Installing required OS packages:" ${packages}
-  yum ${quiet} ${auto} install ${packages} || exit 1
+  ${yum} ${quiet} ${auto} install ${packages} || exit 1
 
   if [ "${crypto_version}" ]; then
     # EPEL must be installed before the updated python-crypto version
-    yum ${quiet} ${auto} install "python-crypto${crypto_version}"
+    ${yum} ${quiet} ${auto} install "python-crypto${crypto_version}"
     # The EPEL python-crypto package isn't usable after installation.
     # A symlink is needed to support "import Crypto".
     # A symlink is needed to make the package visible to "pip list".
@@ -184,7 +186,7 @@ yum_packages() {
   if [ ${mode} != "os" ]; then return; fi
 
   echo "Checking available OS packages ... "
-  packages=$(yum ${quiet} ${auto} info \
+  packages=$(${yum} ${quiet} ${auto} info \
     python-setuptools \
     python-six \
     PyYAML \
@@ -199,7 +201,7 @@ yum_packages() {
     | grep  '^Name *: ' \
     | sed 's/^Name *: //')
   echo "Installing OS packages:" ${packages}
-  yum ${quiet} ${auto} install ${packages} || exit 1
+  ${yum} ${quiet} ${auto} install ${packages} || exit 1
 }
 
 pip_setup() {
@@ -250,6 +252,11 @@ os_setup() {
     debian)
       apt_setup
       apt_packages
+      ;;
+    fedora)
+      if [ "${VERSION_ID}" -ge 22 ]; then yum="dnf"; fi
+      yum_setup
+      yum_packages
       ;;
     centos)
       yum_epel_setup "CentOS" 6
