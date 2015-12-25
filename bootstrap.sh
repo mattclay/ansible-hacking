@@ -1,4 +1,4 @@
-#!/bin/sh
+#!/bin/sh -e
 # Set up your environment with everything needed for Ansible dev and testing.
 
 process_args() {
@@ -94,7 +94,7 @@ apt_setup() {
   "
 
   echo "Installing required OS packages:" ${packages}
-  apt-get ${quiet} ${auto} install ${packages} || exit 1
+  apt-get ${quiet} ${auto} install ${packages}
 }
 
 yum_setup() {
@@ -116,7 +116,7 @@ yum_setup() {
   "
 
   echo "Installing required OS packages:" ${packages}
-  ${yum} ${quiet} ${auto} install ${packages} || exit 1
+  ${yum} ${quiet} ${auto} install ${packages}
 
   if [ "${crypto_version}" ]; then
     # EPEL must be installed before the updated python-crypto version
@@ -135,8 +135,8 @@ yum_setup() {
        [ -d "${pkg_path}/${pc_rpath}" ] &&
        [ -f "${pkg_path}/${pkginfo_path}" ]; then
       echo "Creating symlinks for crypto module version ${crypto_version}."
-      ln -s "${pc_rpath}" "${crypto_path}" || exit 1
-      ln -s "${pkginfo_path}" "${egginfo_path}" || exit 1
+      ln -s "${pc_rpath}" "${crypto_path}"
+      ln -s "${pkginfo_path}" "${egginfo_path}"
     fi
   fi
 }
@@ -179,7 +179,7 @@ apt_packages() {
     | grep  '^Package: ' \
     | sed 's/^Package: //')
   echo "Installing OS packages:" ${packages}
-  apt-get ${quiet} ${auto} install ${packages} || exit 1
+  apt-get ${quiet} ${auto} install ${packages}
 }
 
 yum_packages() {
@@ -201,7 +201,7 @@ yum_packages() {
     | grep  '^Name *: ' \
     | sed 's/^Name *: //')
   echo "Installing OS packages:" ${packages}
-  ${yum} ${quiet} ${auto} install ${packages} || exit 1
+  ${yum} ${quiet} ${auto} install ${packages}
 }
 
 pip_setup() {
@@ -214,7 +214,7 @@ pip_setup() {
     fi
     url="https://bootstrap.pypa.io/get-pip.py"
     echo "Downloading and installing pip..."
-    curl ${silent} ${show_error} ${url} | python || exit 1
+    curl ${silent} ${show_error} ${url} | python
   fi
 
   python_version=$(python --version 2>&1 | grep -o '[0-9]\.[0-9]')
@@ -236,7 +236,7 @@ pip_setup() {
   "
 
   echo "Installing pip packages:" ${packages} 
-  pip ${quiet} install ${packages} || exit 1
+  pip ${quiet} install ${packages}
 }
 
 os_setup() {
