@@ -97,8 +97,11 @@ apt_setup() {
     python-crypto
   "
 
+  # shellcheck disable=SC2086
+  {
   echo "Installing required OS packages:" ${packages}
   apt-get ${quiet} ${auto} install ${packages}
+  }
 }
 
 yum_setup() {
@@ -119,8 +122,11 @@ yum_setup() {
     ${crypto_package}
   "
 
+  # shellcheck disable=SC2086
+  {
   echo "Installing required OS packages:" ${packages}
   ${yum} ${quiet} ${auto} install ${packages}
+  }
 
   if [ "${crypto_version}" ]; then
     # EPEL must be installed before the updated python-crypto version
@@ -182,8 +188,12 @@ apt_packages() {
     python-systemd \
     | grep  '^Package: ' \
     | sed 's/^Package: //')
+
+  # shellcheck disable=SC2086
+  {
   echo "Installing OS packages:" ${packages}
   apt-get ${quiet} ${auto} install ${packages}
+  }
 }
 
 yum_packages() {
@@ -204,8 +214,12 @@ yum_packages() {
     systemd-python \
     | grep  '^Name *: ' \
     | sed 's/^Name *: //')
+
+  # shellcheck disable=SC2086
+  {
   echo "Installing OS packages:" ${packages}
   ${yum} ${quiet} ${auto} install ${packages}
+  }
 }
 
 pip_setup() {
@@ -239,8 +253,11 @@ pip_setup() {
     $unittest2_package
   "
 
+  # shellcheck disable=SC2086
+  {
   echo "Installing pip packages:" ${packages} 
   pip ${quiet} install ${packages}
+  }
 }
 
 os_setup() {
