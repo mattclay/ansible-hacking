@@ -10,6 +10,9 @@ process_args() {
       "pip")
         mode="pip"
         ;;
+      "-t" | "--test")
+        test=1
+        ;;
       "-y" | "--assumeyes")
         auto="-y"
         ;;
@@ -51,6 +54,7 @@ Options:
   -y, --assumeyes   Assume yes for all questions and do not prompt.
   -q, --quiet       Show minimal output.
   -h, --help        Show this help message and exit.
+  -t, --test        Clone the Ansible GitHub repository and run tests.
 
 EOF
 
@@ -274,6 +278,15 @@ os_setup() {
 
 }
 
+test_ansible() {
+  if [ ! ${test} ]; then return; fi
+
+  git clone https://github.com/ansible/ansible --recursive
+  cd ansible
+  . hacking/env-setup
+  make tests
+}
+
 success_message() {
   cat <<- EOF
 
@@ -303,6 +316,7 @@ main() {
   os_setup
   pip_setup
   success_message
+  test_ansible
 }
 
 main "$@"
