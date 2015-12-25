@@ -39,7 +39,7 @@ show_help() {
   if [ ! ${help} ]; then return; fi
 
   cat <<- EOF
-Usage: bootstrap.sh command [options]
+Usage: bootstrap.sh command [option ...]
 
 Commands:
 
