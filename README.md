@@ -13,7 +13,6 @@ The following platforms are currently supported, with the tested versions listed
   * Fedora
     * 20
     * 21
-    * 22
   * CentOS
     * 6 (pip only)
     * 7
