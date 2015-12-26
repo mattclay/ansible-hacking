@@ -18,6 +18,8 @@ The following platforms are currently supported, with the tested versions listed
     * 6 (pip only)
     * 7
   * Red Hat
+  * OS X
+    * 10.9 (Mavericks)
 
 ## test-bootstrap.sh
 Bootstrap a new LXD container and run tests on the container.

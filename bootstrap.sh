@@ -72,6 +72,8 @@ detect_platform() {
     # detect RHEL 6 and earlier
     ID=rhel
     VERSION_ID=$(grep -o '[0-9]' /etc/redhat-release | head -n 1)
+  elif VERSION_ID=$(sw_vers -productVersion 2> /dev/null); then
+    ID=osx
   else
     echo "Platform not detected. No supported '/etc/*-release' file found."
     exit 1
@@ -84,6 +86,40 @@ detect_platform() {
 
   echo "Platform: ${ID}"
   echo " Version: ${VERSION_ID}"
+}
+
+osx_setup() {
+  if [ ${mode} = "os" ]; then
+    echo "OS X does not have the necessary OS packages."
+    echo "Installation via pip required using: bootstrap.sh pip"
+    exit 1
+  fi
+
+  if xcode-select --print-path > /dev/null 2>&1; then return; fi
+
+  # Install CLI tools without any GUI prompts.
+  # Based on the solution found on Stack Exchange here:
+  # http://apple.stackexchange.com/questions/107307
+
+  minor_version=$(echo "${VERSION_ID}" | awk -F "." '{print $2}')
+
+  if [ "${minor_version}" -lt 9 ]; then
+    echo "OS X ${VERSION_ID} is not supported."
+    exit 1
+  fi
+
+  # Create file checked by CLI updates' .dist code in Apple's SUS catalog.
+  # Command Line Tools will not appear in the update list without this.
+  touch /tmp/.com.apple.dt.CommandLineTools.installondemand.in-progress
+
+  echo "Finding Command Line Tools software update ..."
+  update=$(softwareupdate -l \
+    | grep '^ *\* *Command Line Tools ' \
+    | head -n 1 \
+    | sed -e 's/^ *\* *//')
+
+  echo "Installing software update: ${update} ..."
+  softwareupdate --install "${update}"
 }
 
 apt_setup() {
@@ -239,6 +275,15 @@ pip_setup() {
 
   if [ "${python_version}" = "2.6" ]; then unittest2_package="unittest2"; fi
 
+  if [ "${ID}" = "osx" ]; then
+    # setuptools needs to be upgraded first
+    pip install setuptools --upgrade
+    # pycrypto needs to be installed via pip on OS X
+    pycrypto_package="pycrypto"
+    # avoid pycrypto compile error
+    export CFLAGS="-Qunused-arguments"
+  fi
+
   packages="
     six
     PyYAML
@@ -251,6 +296,7 @@ pip_setup() {
     passlib
     python-systemd
     $unittest2_package
+    $pycrypto_package
   "
 
   # shellcheck disable=SC2086
@@ -286,6 +332,9 @@ os_setup() {
     rhel)
       yum_epel_setup "RHEL" 6
       yum_packages
+      ;;
+    osx)
+      osx_setup
       ;;
     *)
       echo "Unsupported platform: ${ID}"
