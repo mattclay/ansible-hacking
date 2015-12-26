@@ -176,7 +176,7 @@ yum_setup() {
     crypto_path="${pkg_path}Crypto"
     pkginfo_path=$(echo "${pc_rpath}" | sed 's|/Crypto$||')"/EGG-INFO/PKG-INFO"
     egginfo_path=$(echo "${pc_path}" | sed 's|/Crypto$||')"-info"
-    if [ ! -e "${crypto_path}" ] && 
+    if [ ! -e "${crypto_path}" ] &&
        [ ! -e "${egginfo_path}" ] &&
        [ -d "${pkg_path}/${pc_rpath}" ] &&
        [ -f "${pkg_path}/${pkginfo_path}" ]; then
@@ -301,7 +301,7 @@ pip_setup() {
 
   # shellcheck disable=SC2086
   {
-  echo "Installing pip packages:" ${packages} 
+  echo "Installing pip packages:" ${packages}
   pip ${quiet} install ${packages}
   }
 }
