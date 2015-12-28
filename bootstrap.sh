@@ -341,7 +341,6 @@ os_setup() {
       exit 1
       ;;
   esac
-
 }
 
 test_ansible() {
