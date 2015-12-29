@@ -10,6 +10,9 @@ process_args() {
       "pip")
         mode="pip"
         ;;
+      "brewdo")
+        mode="brewdo"
+        ;;
       "-t" | "--test")
         test=1
         ;;
@@ -45,9 +48,14 @@ Commands:
 
   os                Install all packages using OS package management.
                     Python pip will not be used to install any packages.
+                    NOTE: Not available on OS X.
 
   pip               Install Python packages (except crypto) using pip.
                     Install non-Python packages with OS package management.
+                    NOTE: Not available on OS X.
+
+  brewdo            Install using a combination of brewdo and pip.
+                    NOTE: Only available on OS X.
 
 Options:
 
@@ -89,9 +97,8 @@ detect_platform() {
 }
 
 osx_setup() {
-  if [ ${mode} = "os" ]; then
-    echo "OS X does not have the necessary OS packages."
-    echo "Installation via pip required using: bootstrap.sh pip"
+  if [ ${mode} != "brewdo" ]; then
+    echo "Installation via brewdo required with: bootstrap.sh brewdo"
     exit 1
   fi
 
@@ -100,6 +107,13 @@ osx_setup() {
   # Install CLI tools without any GUI prompts.
   # Based on the solution found on Stack Exchange here:
   # http://apple.stackexchange.com/questions/107307
+
+  major_version=$(echo "${VERSION_ID}" | awk -F "." '{print $1}')
+
+  if [ "${major_version}" -ne 10 ]; then
+    echo "OS X ${VERSION_ID} is not supported."
+    exit 1
+  fi
 
   minor_version=$(echo "${VERSION_ID}" | awk -F "." '{print $2}')
 
@@ -258,6 +272,25 @@ yum_packages() {
   }
 }
 
+brewdo_setup() {
+  if [ ${mode} != "brewdo" ]; then return; fi
+
+  if ! brewdo > /dev/null 2>&1; then
+    git clone https://github.com/zigg/brewdo
+    cd brewdo
+    ./brewdo install
+    ./brewdo do make install
+    cd ..
+    rm -rf brewdo
+  fi
+
+  brewdo brew install python
+
+  have_pip=1
+  pip_wrapper="brewdo do"
+  mode="pip"
+}
+
 pip_setup() {
   if [ ${mode} != "pip" ]; then return; fi
 
@@ -276,12 +309,8 @@ pip_setup() {
   if [ "${python_version}" = "2.6" ]; then unittest2_package="unittest2"; fi
 
   if [ "${ID}" = "osx" ]; then
-    # setuptools needs to be upgraded first
-    pip install setuptools --upgrade
     # pycrypto needs to be installed via pip on OS X
     pycrypto_package="pycrypto"
-    # avoid pycrypto compile error
-    export CFLAGS="-Qunused-arguments"
   fi
 
   packages="
@@ -302,13 +331,18 @@ pip_setup() {
   # shellcheck disable=SC2086
   {
   echo "Installing pip packages:" ${packages}
-  pip ${quiet} install ${packages}
+  ${pip_wrapper} pip ${quiet} install ${packages}
   }
 }
 
 os_setup() {
   if [ ${mode} = "pip" ] && [ ! ${have_pip} ] && [ ! ${have_curl} ]; then
     install_curl=1
+  fi
+
+  if [ ${mode} = "brewdo" ] && [ ${ID} != "osx" ]; then
+    echo "Installation with brewdo is only available on OS X."
+    exit 1
   fi
 
   case "${ID}" in
@@ -335,6 +369,7 @@ os_setup() {
       ;;
     osx)
       osx_setup
+      brewdo_setup
       ;;
     *)
       echo "Unsupported platform: ${ID}"
