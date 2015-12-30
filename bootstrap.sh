@@ -324,8 +324,8 @@ pip_setup() {
     redis
     python-memcached
     passlib
-    $unittest2_package
-    $pycrypto_package
+    ${unittest2_package}
+    ${pycrypto_package}
   "
 
   # shellcheck disable=SC2086
