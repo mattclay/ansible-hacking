@@ -66,7 +66,7 @@ Options:
 
 EOF
 
-  exit 1
+  exit 0
 }
 
 detect_platform() {
