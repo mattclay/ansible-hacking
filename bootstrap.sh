@@ -324,7 +324,6 @@ pip_setup() {
     redis
     python-memcached
     passlib
-    python-systemd
     $unittest2_package
     $pycrypto_package
   "
