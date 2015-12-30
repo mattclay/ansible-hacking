@@ -277,10 +277,11 @@ brewdo_setup() {
 
   if ! brewdo > /dev/null 2>&1; then
     git clone https://github.com/zigg/brewdo
+    (
     cd brewdo
     ./brewdo install
-    ./brewdo do make install
-    cd ..
+    ./brewdo "do" make install
+    )
     rm -rf brewdo
   fi
 
