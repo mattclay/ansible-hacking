@@ -25,6 +25,16 @@ process_args() {
       "-h" | "--help")
         help=1
         ;;
+      "--as-platform")
+        shift
+        set_platform=1
+        as_platform="$1"
+        ;;
+      "--as-version")
+        shift
+        set_version=1
+        as_version="$1"
+        ;;
       *)
         echo "Unknown argument: $1"
         exit 1
@@ -44,18 +54,56 @@ show_help() {
   cat <<- EOF
 Usage: bootstrap.sh command [option ...]
 
+Platform: ${ID:-Not Detected}
+ Version: ${VERSION_ID:-Not Detected}
+
 Commands:
+EOF
+
+  if [ "${ID}" = "" ] || [ "${VERSION_ID}" = "" ]; then
+  cat <<- EOF
+
+  Platform or version not detected. No commands available.
+EOF
+  elif [ "${commands}" = "" ]; then
+  cat <<- EOF
+
+  Platform or version not supported. No commands available.
+EOF
+  else
+  cat <<- EOF
+
+  Commands available for the detected platform and version.
+EOF
+  fi
+
+  for command in ${commands}; do
+
+  if [ "${command}" = "os" ]; then
+  cat <<- EOF
 
   os                Install all packages using OS package management.
                     Python pip will not be used to install any packages.
-                    NOTE: Not available on OS X.
+EOF
+  fi
+
+  if [ "${command}" = "pip" ]; then
+  cat <<- EOF
 
   pip               Install Python packages (except crypto) using pip.
                     Install non-Python packages with OS package management.
-                    NOTE: Not available on OS X.
+EOF
+  fi
+
+  if [ "${command}" = "brewdo" ]; then
+  cat <<- EOF
 
   brewdo            Install using a combination of brewdo and pip.
-                    NOTE: Only available on OS X.
+EOF
+  fi
+  done
+
+  cat <<- EOF
 
 Options:
 
@@ -82,8 +130,64 @@ detect_platform() {
     VERSION_ID=$(grep -o '[0-9]' /etc/redhat-release | head -n 1)
   elif VERSION_ID=$(sw_vers -productVersion 2> /dev/null); then
     ID=osx
-  else
-    echo "Platform not detected. No supported '/etc/*-release' file found."
+  fi
+
+  if [ ${set_platform} ]; then
+    ID="${as_platform}"
+  fi
+
+  if [ ${set_version} ]; then
+    VERSION_ID="${as_version}"
+  fi
+}
+
+review_platform() {
+  case "${ID}" in
+    ubuntu)
+      commands="os pip"
+      ;;
+    debian)
+      commands="os pip"
+      ;;
+    fedora)
+      commands="os pip"
+      ;;
+    centos)
+      if [ "${VERSION_ID}" -ge 7 ]; then
+        commands="os pip"
+      else
+        commands="pip"
+      fi
+      ;;
+    rhel)
+      if [ "${VERSION_ID}" -ge 7 ]; then
+        commands="os pip"
+      else
+        commands="pip"
+      fi
+      ;;
+    osx)
+      major_version=$(echo "${VERSION_ID}" | awk -F "." '{print $1}')
+      minor_version=$(echo "${VERSION_ID}" | awk -F "." '{print $2}')
+      if [ "${major_version}" -eq 10 ] && [ "${minor_version}" -ge 9 ]; then
+        commands="brewdo"
+      fi
+      ;;
+  esac
+}
+
+check_platform() {
+  for command in ${commands}; do
+    if [ "${mode}" = "${command}" ]; then
+      valid_mode=1
+    fi
+  done
+
+  if [ ! ${valid_mode} ]; then
+    cat <<- EOF
+Command '${mode}' is not valid for this platform or version.
+See available commands with: bootstrap.sh --help
+EOF
     exit 1
   fi
 
@@ -92,35 +196,17 @@ detect_platform() {
 
   yum="yum"
 
-  echo "Platform: ${ID}"
-  echo " Version: ${VERSION_ID}"
+  if [ ${mode} = "pip" ] && [ ! ${have_pip} ] && [ ! ${have_curl} ]; then
+    install_curl=1
+  fi
 }
 
 osx_setup() {
-  if [ ${mode} != "brewdo" ]; then
-    echo "Installation via brewdo required with: bootstrap.sh brewdo"
-    exit 1
-  fi
-
   if xcode-select --print-path > /dev/null 2>&1; then return; fi
 
   # Install CLI tools without any GUI prompts.
   # Based on the solution found on Stack Exchange here:
   # http://apple.stackexchange.com/questions/107307
-
-  major_version=$(echo "${VERSION_ID}" | awk -F "." '{print $1}')
-
-  if [ "${major_version}" -ne 10 ]; then
-    echo "OS X ${VERSION_ID} is not supported."
-    exit 1
-  fi
-
-  minor_version=$(echo "${VERSION_ID}" | awk -F "." '{print $2}')
-
-  if [ "${minor_version}" -lt 9 ]; then
-    echo "OS X ${VERSION_ID} is not supported."
-    exit 1
-  fi
 
   # Create file checked by CLI updates' .dist code in Apple's SUS catalog.
   # Command Line Tools will not appear in the update list without this.
@@ -202,14 +288,7 @@ yum_setup() {
 }
 
 yum_epel_setup() {
-  name="$1"
-  version="$2"
-  if [ "${VERSION_ID}" -le "${version}" ]; then
-    if [ ${mode} = "os" ]; then
-      echo "${name} ${version} and earlier packages are too old."
-      echo "Installation via pip required using: bootstrap.sh pip"
-      exit 1
-    fi
+  if [ "${VERSION_ID}" -le 6 ]; then
     # EPEL required for python-crypto without a C compiler
     install_epel=1
     crypto_version="2.6"
@@ -309,11 +388,6 @@ pip_setup() {
 
   if [ "${python_version}" = "2.6" ]; then unittest2_package="unittest2"; fi
 
-  if [ "${ID}" = "osx" ]; then
-    # pycrypto needs to be installed via pip on OS X
-    pycrypto_package="pycrypto"
-  fi
-
   packages="
     six
     PyYAML
@@ -336,15 +410,6 @@ pip_setup() {
 }
 
 os_setup() {
-  if [ ${mode} = "pip" ] && [ ! ${have_pip} ] && [ ! ${have_curl} ]; then
-    install_curl=1
-  fi
-
-  if [ ${mode} = "brewdo" ] && [ ${ID} != "osx" ]; then
-    echo "Installation with brewdo is only available on OS X."
-    exit 1
-  fi
-
   case "${ID}" in
     ubuntu)
       apt_setup
@@ -360,20 +425,18 @@ os_setup() {
       yum_packages
       ;;
     centos)
-      yum_epel_setup "CentOS" 6
+      yum_epel_setup
       yum_packages
       ;;
     rhel)
-      yum_epel_setup "RHEL" 6
+      yum_epel_setup
       yum_packages
       ;;
     osx)
       osx_setup
       brewdo_setup
-      ;;
-    *)
-      echo "Unsupported platform: ${ID}"
-      exit 1
+      # pycrypto needs to be installed via pip
+      pycrypto_package="pycrypto"
       ;;
   esac
 }
@@ -411,8 +474,10 @@ EOF
 
 main() {
   process_args "$@"
-  show_help
   detect_platform
+  review_platform
+  show_help
+  check_platform
   os_setup
   pip_setup
   success_message
