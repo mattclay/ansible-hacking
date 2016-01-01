@@ -25,6 +25,8 @@ The following platforms are currently supported, with the tested versions listed
     * 10.10 (Yosemite)
     * 10.11 (El Capitan)
 
+NOTE: This script must be run as root.
+
 ## test-bootstrap.sh
 Bootstrap a new LXD container and run tests on the container.
 
