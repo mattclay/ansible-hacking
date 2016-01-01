@@ -9,6 +9,7 @@ On OS X, installation is done using a combination of
 The following platforms are currently supported, with the tested versions listed.
   * Ubuntu
     * 14.04 LTS (Trusty Tahr)
+    * 15.04 (Vivid Vervet)
     * 15.10 (Wily Werewolf)
   * Debian
     * 8 (Jessie)
