@@ -155,7 +155,10 @@ detect_platform() {
 review_platform() {
   case "${ID}" in
     ubuntu)
-      commands="os pip"
+      major_version=$(echo "${VERSION_ID}" | awk -F "." '{print $1}')
+      if [ "${major_version}" -ge 14 ]; then
+        commands="os pip"
+      fi
       ;;
     debian)
       commands="os pip"
@@ -166,14 +169,14 @@ review_platform() {
     centos)
       if [ "${VERSION_ID}" -ge 7 ]; then
         commands="os pip"
-      else
+      elif [ "${VERSION_ID}" -ge 6 ]; then
         commands="pip"
       fi
       ;;
     rhel)
       if [ "${VERSION_ID}" -ge 7 ]; then
         commands="os pip"
-      else
+      elif [ "${VERSION_ID}" -ge 6 ]; then
         commands="pip"
       fi
       ;;
