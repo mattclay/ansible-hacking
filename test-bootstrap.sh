@@ -43,7 +43,7 @@ echo "Waiting for networking to come up in ${name} container."
 while ! lxc info "${name}" | grep 'eth0:' > /dev/null 2>&1; do
   sleep 1
 done
-echo "Networking is up in {$name} container."
+echo "Networking is up in ${name} container."
 
 echo "Pushing bootstrap.sh to ${name} container."
 lxc file push --mode=0755 "${script_path}/bootstrap.sh" "${name}/root/"
