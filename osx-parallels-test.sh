@@ -10,7 +10,6 @@ fi
 
 src="OS X ${version}"
 dst="Test ${version}"
-host="test-${version}"
 
 if prlctl status "${dst}" > /dev/null 2>&1; then
   prlctl stop "${dst}" --kill
