@@ -13,7 +13,7 @@ The commands and options are those for bootstrap.sh, as follows:
 
 EOF
 
-  "${script_path}/bootstrap.sh" | grep -A 1000 '^Commands:'
+  "${script_path}/bootstrap.sh" --help-all | grep -A 1000 '^Commands:'
 
   exit 1
 fi

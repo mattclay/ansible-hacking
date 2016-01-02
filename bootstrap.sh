@@ -25,6 +25,10 @@ process_args() {
       "-h" | "--help")
         help=1
         ;;
+      "--help-all")
+        help=1
+        help_all=1
+        ;;
       "--as-platform")
         shift
         set_platform=1
@@ -60,7 +64,13 @@ Platform: ${ID:-Not Detected}
 Commands:
 EOF
 
-  if [ "${ID}" = "" ] || [ "${VERSION_ID}" = "" ]; then
+  if [ $help_all ]; then
+    commands="os pip brewdo"
+    cat <<- EOF
+
+  Command availability depends on platform and version.
+EOF
+  elif [ "${ID}" = "" ] || [ "${VERSION_ID}" = "" ]; then
     cat <<- EOF
 
   Platform or version not detected. No commands available.
@@ -110,6 +120,7 @@ Options:
   -y, --assumeyes   Assume yes for all questions and do not prompt.
   -q, --quiet       Show minimal output.
   -h, --help        Show this help message and exit.
+      --help-all    Show help for all commands and exit.
   -t, --test        Clone the Ansible GitHub repository and run tests.
 
 EOF
