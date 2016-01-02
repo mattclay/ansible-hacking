@@ -61,17 +61,17 @@ Commands:
 EOF
 
   if [ "${ID}" = "" ] || [ "${VERSION_ID}" = "" ]; then
-  cat <<- EOF
+    cat <<- EOF
 
   Platform or version not detected. No commands available.
 EOF
   elif [ "${commands}" = "" ]; then
-  cat <<- EOF
+    cat <<- EOF
 
   Platform or version not supported. No commands available.
 EOF
   else
-  cat <<- EOF
+    cat <<- EOF
 
   Commands available for the detected platform and version.
 EOF
@@ -80,7 +80,7 @@ EOF
   for command in ${commands}; do
 
   if [ "${command}" = "os" ]; then
-  cat <<- EOF
+    cat <<- EOF
 
   os                Install all packages using OS package management.
                     Python pip will not be used to install any packages.
@@ -88,7 +88,7 @@ EOF
   fi
 
   if [ "${command}" = "pip" ]; then
-  cat <<- EOF
+    cat <<- EOF
 
   pip               Install Python packages (except crypto) using pip.
                     Install non-Python packages with OS package management.
@@ -96,7 +96,7 @@ EOF
   fi
 
   if [ "${command}" = "brewdo" ]; then
-  cat <<- EOF
+    cat <<- EOF
 
   brewdo            Install using a combination of brewdo and pip.
 EOF
@@ -235,8 +235,8 @@ apt_setup() {
 
   # shellcheck disable=SC2086
   {
-  echo "Installing required OS packages:" ${packages}
-  apt-get ${quiet} ${auto} install ${packages}
+    echo "Installing required OS packages:" ${packages}
+    apt-get ${quiet} ${auto} install ${packages}
   }
 }
 
@@ -260,8 +260,8 @@ yum_setup() {
 
   # shellcheck disable=SC2086
   {
-  echo "Installing required OS packages:" ${packages}
-  ${yum} ${quiet} ${auto} install ${packages}
+    echo "Installing required OS packages:" ${packages}
+    ${yum} ${quiet} ${auto} install ${packages}
   }
 
   if [ "${crypto_version}" ]; then
@@ -320,8 +320,8 @@ apt_packages() {
 
   # shellcheck disable=SC2086
   {
-  echo "Installing OS packages:" ${packages}
-  apt-get ${quiet} ${auto} install ${packages}
+    echo "Installing OS packages:" ${packages}
+    apt-get ${quiet} ${auto} install ${packages}
   }
 }
 
@@ -346,8 +346,8 @@ yum_packages() {
 
   # shellcheck disable=SC2086
   {
-  echo "Installing OS packages:" ${packages}
-  ${yum} ${quiet} ${auto} install ${packages}
+    echo "Installing OS packages:" ${packages}
+    ${yum} ${quiet} ${auto} install ${packages}
   }
 }
 
@@ -404,8 +404,8 @@ pip_setup() {
 
   # shellcheck disable=SC2086
   {
-  echo "Installing pip packages:" ${packages}
-  ${pip_wrapper} pip ${quiet} install ${packages}
+    echo "Installing pip packages:" ${packages}
+    ${pip_wrapper} pip ${quiet} install ${packages}
   }
 }
 
