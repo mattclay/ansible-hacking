@@ -11,7 +11,8 @@ The following platforms are currently supported, with the tested versions listed
     * 14.04 LTS (Trusty Tahr)
     * 15.04 (Vivid Vervet)
     * 15.10 (Wily Werewolf)
-  * Debian
+  * Debian (7+)
+    * 7 (Wheezy) (pip only)
     * 8 (Jessie)
   * Fedora
     * 20
@@ -24,6 +25,9 @@ The following platforms are currently supported, with the tested versions listed
     * 10.9 (Mavericks)
     * 10.10 (Yosemite)
     * 10.11 (El Capitan)
+
+Some platform versions have Python modules which are too old.
+When this is the case, only the pip command will be available.
 
 NOTE: This script must be run as root, except when using brew.
 

@@ -184,7 +184,12 @@ review_platform() {
       fi
       ;;
     debian)
-      commands="os pip"
+      if [ "${VERSION_ID}" -ge 8 ]; then
+        commands="os pip"
+      elif [ "${VERSION_ID}" -ge 7 ]; then
+        commands="pip"
+        commands_note="OS packages are too old, use of pip required."
+      fi
       ;;
     fedora)
       commands="os pip"
@@ -194,6 +199,7 @@ review_platform() {
         commands="os pip"
       elif [ "${VERSION_ID}" -ge 6 ]; then
         commands="pip"
+        commands_note="OS packages are too old, use of pip required."
       fi
       ;;
     rhel)
@@ -201,6 +207,7 @@ review_platform() {
         commands="os pip"
       elif [ "${VERSION_ID}" -ge 6 ]; then
         commands="pip"
+        commands_note="OS packages are too old, use of pip required."
       fi
       ;;
     osx)
