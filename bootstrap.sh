@@ -67,7 +67,7 @@ Platform: ${ID:-Not Detected}
 Commands:
 EOF
 
-  if [ $help_all ]; then
+  if [ ${help_all} ]; then
     commands="os pip brewdo brew"
     cat <<- EOF
 

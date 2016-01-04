@@ -50,6 +50,6 @@ lxc file push --mode=0755 "${script_path}/bootstrap.sh" "${name}/root/"
 
 echo "Executing bootstrap.sh in ${name} container."
 # shellcheck disable=SC2086
-lxc exec "${name}" -- /root/bootstrap.sh $args
+lxc exec "${name}" -- /root/bootstrap.sh ${args}
 
 echo "Completed testing of ${name} container."

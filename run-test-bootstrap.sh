@@ -44,7 +44,7 @@ for arg in "$@"; do
   esac
 done
 
-for image in $images; do
+for image in ${images}; do
   for command in os pip; do
     name="${image}-${command}"
     echo "Starting test of ${name} in the background."
