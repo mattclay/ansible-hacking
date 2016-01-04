@@ -84,6 +84,7 @@ EOF
     cat <<- EOF
 
   Commands available for the detected platform and version.
+  Unless otherwise noted, commands must be run as root.
 EOF
   fi
 
@@ -150,6 +151,10 @@ detect_platform() {
   if [ ${set_version} ]; then
     VERSION_ID="${as_version}"
   fi
+
+  if [ "$(id -u)" -eq 0 ]; then
+    have_root=1
+  fi
 }
 
 review_platform() {
@@ -204,6 +209,15 @@ See available commands with: bootstrap.sh --help
 EOF
     exit 1
   fi
+
+  case "${mode}" in
+    *)
+      if [ ! ${have_root} ]; then
+        echo "Command '${mode}' must be run as root."
+        exit 1
+      fi
+    ;;
+  esac
 
   pip  --version > /dev/null 2>&1 && have_pip=1
   curl --version > /dev/null 2>&1 && have_curl=1
