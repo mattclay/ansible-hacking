@@ -5,7 +5,7 @@ A collection of scripts to make hacking on Ansible easier.
 Set up your environment with everything you need to develop and test Ansible. 
 On Linux, Python modules are installed using your choice of OS packages or pip.
 On OS X, installation is done using a combination of
-[brewdo](https://github.com/zigg/brewdo) and pip.
+[brewdo](https://github.com/zigg/brewdo) or brew and pip.
 The following platforms are currently supported, with the tested versions listed.
   * Ubuntu (14.04+)
     * 14.04 LTS (Trusty Tahr)
@@ -25,7 +25,7 @@ The following platforms are currently supported, with the tested versions listed
     * 10.10 (Yosemite)
     * 10.11 (El Capitan)
 
-NOTE: This script must be run as root.
+NOTE: This script must be run as root, except when using brew.
 
 ## test-bootstrap.sh
 Bootstrap a new LXD container and run tests on the container.

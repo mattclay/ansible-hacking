@@ -13,6 +13,9 @@ process_args() {
       "brewdo")
         mode="brewdo"
         ;;
+      "brew")
+        mode="brew"
+        ;;
       "-t" | "--test")
         test=1
         ;;
@@ -65,7 +68,7 @@ Commands:
 EOF
 
   if [ $help_all ]; then
-    commands="os pip brewdo"
+    commands="os pip brewdo brew"
     cat <<- EOF
 
   Command availability depends on platform and version.
@@ -112,7 +115,22 @@ EOF
   brewdo            Install using a combination of brewdo and pip.
 EOF
   fi
+
+  if [ "${command}" = "brew" ]; then
+    cat <<- EOF
+
+  brew              Install using a combination of brew and pip.
+                    Must be run as a non-root administrator.
+EOF
+  fi
   done
+
+  if [ "${commands_note}" != "" ]; then
+    cat <<- EOF
+
+  NOTE: ${commands_note}
+EOF
+  fi
 
   cat <<- EOF
 
@@ -189,7 +207,17 @@ review_platform() {
       major_version=$(echo "${VERSION_ID}" | awk -F "." '{print $1}')
       minor_version=$(echo "${VERSION_ID}" | awk -F "." '{print $2}')
       if [ "${major_version}" -eq 10 ] && [ "${minor_version}" -ge 9 ]; then
-        commands="brewdo"
+        brewdo > /dev/null 2>&1 && have_brewdo=1
+        brew --version > /dev/null 2>&1 && have_brew=1
+        if [ ${have_brewdo} ]; then
+          commands="brewdo"
+          commands_note="Only brewdo is supported when already installed."
+        elif [ ${have_brew} ]; then
+          commands="brew"
+          commands_note="Only brew is supported when already installed."
+        else
+          commands="brewdo brew"
+        fi
       fi
       ;;
   esac
@@ -211,6 +239,12 @@ EOF
   fi
 
   case "${mode}" in
+    brew)
+      if [ ${have_root} ]; then
+        echo "Command '${mode}' cannot be run as root."
+        exit 1
+      fi
+    ;;
     *)
       if [ ! ${have_root} ]; then
         echo "Command '${mode}' must be run as root."
@@ -246,8 +280,12 @@ osx_setup() {
     | head -n 1 \
     | sed -e 's/^ *\* *//')
 
+  if [ ! ${have_root} ]; then
+    softwareupdate_wrapper="sudo"
+  fi
+
   echo "Installing software update: ${update} ..."
-  softwareupdate --install "${update}"
+  ${softwareupdate_wrapper} softwareupdate --install "${update}"
 }
 
 apt_setup() {
@@ -382,7 +420,7 @@ yum_packages() {
 brewdo_setup() {
   if [ ${mode} != "brewdo" ]; then return; fi
 
-  if ! brewdo > /dev/null 2>&1; then
+  if [ ! ${have_brewdo} ]; then
     git clone https://github.com/zigg/brewdo
     (
     cd brewdo
@@ -396,6 +434,20 @@ brewdo_setup() {
 
   have_pip=1
   pip_wrapper="brewdo do"
+  mode="pip"
+}
+
+brew_setup() {
+  if [ ${mode} != "brew" ]; then return; fi
+
+  if [ ! ${have_brew} ]; then
+    url="https://raw.githubusercontent.com/Homebrew/install/master/install"
+    ruby -e "$(curl -fsSL "${url}")"
+  fi
+
+  brew install python
+
+  have_pip=1
   mode="pip"
 }
 
@@ -462,6 +514,7 @@ os_setup() {
       ;;
     osx)
       osx_setup
+      brew_setup
       brewdo_setup
       # pycrypto needs to be installed via pip
       pycrypto_package="pycrypto"
