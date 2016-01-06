@@ -334,12 +334,12 @@ yum_setup() {
   # shellcheck disable=SC2086
   {
     echo "Installing required OS packages:" ${packages}
-    ${yum} ${quiet} ${auto} install ${packages}
+    ${yum} ${quiet} ${auto} install ${packages} | tee
   }
 
   if [ "${crypto_version}" ]; then
     # EPEL must be installed before the updated python-crypto version
-    ${yum} ${quiet} ${auto} install "python-crypto${crypto_version}"
+    ${yum} ${quiet} ${auto} install "python-crypto${crypto_version}" | tee
     # The EPEL python-crypto package isn't usable after installation.
     # A symlink is needed to support "import Crypto".
     # A symlink is needed to make the package visible to "pip list".
@@ -420,7 +420,7 @@ yum_packages() {
   # shellcheck disable=SC2086
   {
     echo "Installing OS packages:" ${packages}
-    ${yum} ${quiet} ${auto} install ${packages}
+    ${yum} ${quiet} ${auto} install ${packages} | tee
   }
 }
 
