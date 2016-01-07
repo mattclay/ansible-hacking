@@ -19,7 +19,16 @@ EOF
 fi
 
 image="$1"
-name="${image}-$2"
+
+case "${image}" in
+  *:*)
+    name=$(echo "${image}-$2" | sed 's|^[^:]*:||; s|/|-|g;')
+    ;;
+  *)
+    name="${image}-$2"
+    ;;
+esac
+
 shift
 args="$*"
 

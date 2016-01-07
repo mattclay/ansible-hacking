@@ -46,7 +46,14 @@ done
 
 for image in ${images}; do
   for command in os pip; do
-    name="${image}-${command}"
+    case "${image}" in
+      *:*)
+        name=$(echo "${image}-${command}" | sed 's|^[^:]*:||; s|/|-|g;')
+        ;;
+      *)
+        name="${image}-${command}"
+        ;;
+    esac
     echo "Starting test of ${name} in the background."
     # shellcheck disable=SC2086
     "${script_path}/test-bootstrap.sh" "${image}" "${command}" ${options} > "${name}.log" 2>&1 &
