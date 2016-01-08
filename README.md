@@ -37,3 +37,9 @@ Bootstrap a new LXD container and run tests on the container.
 
 ## run-test-bootstrap.sh
 Run bootstrap tests on the specified LXD images in parallel.
+
+## osx-parallels-test.sh
+Start a new Parallels VM for a specific version of OS X.
+Stops and deletes the VM if it already exists.
+The VM to clone from must be named "OS X {version}" such as "OS X 10.11".
+The VM to clone to will be named "Test {version}" such as "Test 10.11".
