@@ -32,11 +32,11 @@ When this is the case, only the pip command will be available.
 
 NOTE: This script must be run as root, except when using brew.
 
-## test-bootstrap.sh
-Bootstrap a new LXD container and run tests on the container.
+## lxc-bootstrap.sh
+Run bootstrap.sh in a new LXD container.
 
-## run-test-bootstrap.sh
-Run bootstrap tests on the specified LXD images in parallel.
+## lxc-parallel.sh
+Run lxc-bootstrap.sh on LXD images in parallel.
 
 ## osx-parallels-test.sh
 Start a new Parallels VM for a specific version of OS X.

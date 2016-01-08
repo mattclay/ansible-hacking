@@ -1,13 +1,13 @@
 #!/bin/sh -e
-# Run test-bootstrap.sh on the specified LXD images in parallel.
+# Run lxc-bootstrap.sh on LXD images in parallel.
 
 script=$(readlink -f "$0")
 script_path=$(dirname "${script}")
 
 if [ "$#" -eq 0 ]; then
   cat <<- EOF
-Usage: run-test-bootstrap.sh -f image-list ... [option ...]
-Usage: run-test-bootstrap.sh image ... [option ...]
+Usage: lxc-parallel.sh -f image-list ... [option ...]
+Usage: lxc-parallel.sh image ... [option ...]
 
 Arguments:
 
@@ -56,7 +56,7 @@ for image in ${images}; do
     esac
     echo "Starting test of ${name} in the background."
     # shellcheck disable=SC2086
-    "${script_path}/test-bootstrap.sh" "${image}" "${command}" ${options} > "${name}.log" 2>&1 &
+    "${script_path}/lxc-bootstrap.sh" "${image}" "${command}" ${options} > "${name}.log" 2>&1 &
     pid=$!
     echo "PID ${pid} is running test of ${name}."
     pids="${pids} ${pid}"

@@ -1,12 +1,12 @@
 #!/bin/sh -e
-# Bootstrap a new LXD container with Ansible and run tests on the container.
+# Run bootstrap.sh in a new LXD container.
 
 script=$(readlink -f "$0")
 script_path=$(dirname "${script}")
 
 if [ "$#" -lt 2 ]; then
   cat <<- EOF
-Usage: test-bootstrap.sh image command [option ...]
+Usage: lxc-bootstrap.sh image command [option ...]
 
 The image argument is the LXD image you want to test bootstrap.sh with.
 The commands and options are those for bootstrap.sh, as follows:
@@ -61,4 +61,4 @@ echo "Executing bootstrap.sh in ${name} container."
 # shellcheck disable=SC2086
 lxc exec "${name}" -- /root/bootstrap.sh ${args}
 
-echo "Completed testing of ${name} container."
+echo "Completed bootstrap.sh in ${name} container."
