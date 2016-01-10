@@ -37,6 +37,7 @@ Run bootstrap.sh in a new LXD container.
 
 ## lxc-parallel.sh
 Run lxc-bootstrap.sh on LXD images in parallel.
+Each image will be tested with both the os and pip bootstrap comands.
 
 ## osx-parallels-test.sh
 Start a new Parallels VM for a specific version of OS X.
