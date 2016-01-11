@@ -32,6 +32,9 @@ When this is the case, only the pip command will be available.
 
 NOTE: This script must be run as root, except when using brew.
 
+## test.sh
+Easily run Ansible tests.
+
 ## lxc-bootstrap.sh
 Run bootstrap.sh in a new LXD container.
 
