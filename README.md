@@ -35,6 +35,9 @@ NOTE: This script must be run as root, except when using brew.
 ## test.sh
 Easily run Ansible tests.
 
+## lxc-push.sh
+Copy a single file or directory to an LXD container.
+
 ## lxc-bootstrap.sh
 Run bootstrap.sh in a new LXD container.
 
