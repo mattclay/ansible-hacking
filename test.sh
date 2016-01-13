@@ -67,10 +67,10 @@ run_setup() {
   if [ ! ${setup} ]; then return; fi
 
   for src in "${dir}" "${PWD}" "${PWD}/ansible" "${ANSIBLE_HOME}"; do
-    env_setup="${src}/hacking/env-setup"
-    if [ -f "${env_setup}" ]; then
+    if [ -f "${src}/hacking/env-setup" ]; then
       log "Setting up Ansible environment..."
-      . "${env_setup}"
+      cd "${src}"
+      . "hacking/env-setup"
       setup=""
       break
     fi
