@@ -55,7 +55,9 @@ done
 echo "Networking is up in ${name} container."
 
 echo "Pushing bootstrap.sh to ${name} container."
-lxc file push --mode=0755 "${script_path}/bootstrap.sh" "${name}/root/"
+"${script_path}/lxc-push.sh" \
+  "${script_path}/bootstrap.sh" \
+  "${name}/root/bootstrap.sh"
 
 echo "Executing bootstrap.sh in ${name} container."
 # shellcheck disable=SC2086
