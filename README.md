@@ -41,6 +41,9 @@ Copy a single file or directory to an LXD container.
 ## lxc-bootstrap.sh
 Run bootstrap.sh in a new LXD container.
 
+## lxc-test.sh
+Run test.sh in an LXD container.
+
 ## lxc-parallel.sh
 Run lxc-bootstrap.sh on LXD images in parallel.
 Each image will be tested with both the os and pip bootstrap comands.
