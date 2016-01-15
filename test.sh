@@ -5,6 +5,8 @@ process_args() {
   if [ $# -eq 0 ]; then help=1; fi
   if [ "${ANSIBLE_HOME}" = "" ]; then setup=1; fi
 
+  quiet=""
+
   while [ "$1" ]; do
     case "$1" in
       "-s" | "--setup")
@@ -26,6 +28,9 @@ process_args() {
         tags="${tags}${tags:+,}$1"
         ;;
       "-q" | "--quiet")
+        if [ ${quiet} ]; then
+          silent=1
+        fi
         quiet=1
         ;;
       "-h" | "--help")
@@ -56,6 +61,7 @@ Options:
                             If omitted, all tags for the test target will run.
                             May be specified multiple times to add more tags.
   -q, --quiet               Do not include additional log messages.
+                            Specify more than once to silence "env-setup".
   -h, --help                Show this help message and exit.
 
 EOF
@@ -70,7 +76,11 @@ run_setup() {
     if [ -f "${src}/hacking/env-setup" ]; then
       log "Setting up Ansible environment..."
       cd "${src}"
-      . "hacking/env-setup"
+      if [ ${silent} ]; then
+        . "hacking/env-setup" > /dev/null 2>&1
+      else
+        . "hacking/env-setup"
+      fi
       setup=""
       break
     fi
