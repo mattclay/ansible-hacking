@@ -44,7 +44,7 @@ Run bootstrap.sh in a new LXD container.
 ## lxc-test.sh
 Run test.sh in an LXD container.
 
-## lxc-parallel.sh
+## lxc-parallel-bootstrap.sh
 Run lxc-bootstrap.sh on LXD images in parallel.
 Each image will be tested with both the os and pip bootstrap comands.
 
