@@ -34,8 +34,8 @@ process_args() {
       *)
         echo "Unknown argument: $1"
         exit 1
-     esac
-  shift
+    esac
+    shift
   done
 }
 
