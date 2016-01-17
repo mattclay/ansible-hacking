@@ -1,6 +1,9 @@
 # ansible-hacking
 A collection of scripts to make hacking on Ansible easier.
 
+# Common
+Scripts for use on any Ansible control machine.
+
 ## bootstrap.sh
 Set up your environment with everything you need to develop and test Ansible. 
 On Linux, Python modules are installed using your choice of OS packages or pip.
@@ -35,6 +38,9 @@ NOTE: This script must be run as root, except when using brew.
 ## test.sh
 Easily run Ansible tests.
 
+# LXD
+Scripts for use on a Linux host with [LXD](https://linuxcontainers.org/lxd/).
+
 ## lxc-push.sh
 Copy a single file or directory to an LXD container.
 
@@ -50,6 +56,9 @@ Each image will be tested with both the os and pip bootstrap comands.
 
 ## lxc-parallel-test.sh
 Run lxc-test.sh on LXD containers in parallel.
+
+# OS X
+Scripts for use on OS X.
 
 ## osx-parallels-test.sh
 Start a new Parallels VM for a specific version of OS X.
