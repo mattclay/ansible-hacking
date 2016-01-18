@@ -3,6 +3,7 @@ dist: trusty
 language: generic
 
 before_install:
+  - sudo apt-add-repository 'deb http://archive.ubuntu.com/ubuntu trusty-backports universe'
   - sudo apt-get update -qq
   - sudo apt-get install shellcheck
 
