@@ -5,7 +5,7 @@ A collection of scripts to make hacking on Ansible easier.
 Scripts for use on any Ansible control machine.
 
 ## bootstrap.sh
-Set up your environment with everything you need to develop and test Ansible. 
+Set up your environment with everything you need to develop and test Ansible.
 On Linux, Python modules are installed using your choice of OS packages or pip.
 On OS X, installation is done using a combination of
 [brewdo](https://github.com/zigg/brewdo) or brew and pip.
