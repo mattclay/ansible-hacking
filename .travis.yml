@@ -2,10 +2,9 @@ sudo: required
 dist: trusty
 language: generic
 
-addons:
-  apt:
-    packages:
-    - shellcheck
+before_install:
+  - sudo apt-get update -qq
+  - sudo apt-get install shellcheck
 
 script:
   - ./pre-commit.sh
