@@ -1,3 +1,5 @@
+[![Build Status](https://travis-ci.org/mattclay/ansible-hacking.svg?branch=master)](https://travis-ci.org/mattclay/ansible-hacking)
+
 # ansible-hacking
 A collection of scripts to make hacking on Ansible easier.
 
