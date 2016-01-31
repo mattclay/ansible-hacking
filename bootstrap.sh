@@ -308,6 +308,8 @@ apt_setup() {
 
   # shellcheck disable=SC2086
   {
+    echo "Updating apt package index ..."
+    apt-get ${quiet} ${auto} update
     echo "Installing required OS packages:" ${packages}
     apt-get ${quiet} ${auto} install ${packages}
   }
