@@ -118,11 +118,12 @@ run_integration() {
     log "No tags were specified."
   else
     log "Tags: ${tags}"
+    test_flags="--tags ${tags}"
   fi
 
   (
     cd "${ANSIBLE_HOME}/test/integration"
-    TEST_FLAGS="--tags ${tags}" make "${target}"
+    TEST_FLAGS="${test_flags}" make "${target}"
   )
 
   log "Completed Ansible integration tests."
