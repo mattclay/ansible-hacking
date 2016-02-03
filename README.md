@@ -9,6 +9,7 @@ Scripts for use on any Ansible control machine.
 ## bootstrap.sh
 Set up your environment with everything you need to develop and test Ansible.
 On Linux, Python modules are installed using your choice of OS packages or pip.
+On FreeBSD, Python modules are installed using pip.
 On OS X, installation is done using a combination of
 [brewdo](https://github.com/zigg/brewdo) or brew and pip.
 The following platforms are currently supported, with the tested versions listed.
@@ -31,6 +32,8 @@ The following platforms are currently supported, with the tested versions listed
     * 10.9 (Mavericks)
     * 10.10 (Yosemite)
     * 10.11 (El Capitan)
+  * FreeBSD (pip only)
+    * 10.2
 
 Some platform versions have Python modules which are too old.
 When this is the case, only the pip command will be available.

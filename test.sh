@@ -44,6 +44,14 @@ process_args() {
   done
 }
 
+detect_make() {
+  if gmake --version > /dev/null 2>&1; then
+    make="gmake"
+  else
+    make="make"
+  fi
+}
+
 show_help() {
   if [ ! ${help} ]; then return; fi
 
@@ -103,7 +111,7 @@ run_tests() {
 
   (
     cd "${ANSIBLE_HOME}"
-    make tests
+    ${make} tests
   )
 
   log "Completed Ansible tests."
@@ -123,7 +131,7 @@ run_integration() {
 
   (
     cd "${ANSIBLE_HOME}/test/integration"
-    TEST_FLAGS="${test_flags}" make "${target}"
+    TEST_FLAGS="${test_flags}" ${make} "${target}"
   )
 
   log "Completed Ansible integration tests."
@@ -137,6 +145,7 @@ log() {
 
 main() {
   process_args "$@"
+  detect_make
   show_help
   run_setup
   run_tests

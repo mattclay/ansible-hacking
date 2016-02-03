@@ -160,6 +160,8 @@ detect_platform() {
     VERSION_ID=$(grep -o '[0-9]' /etc/redhat-release | head -n 1)
   elif VERSION_ID=$(sw_vers -productVersion 2> /dev/null); then
     ID=osx
+  elif VERSION_ID=$(freebsd-version -u 2> /dev/null); then
+    ID=freebsd
   fi
 
   if [ ${set_platform} ]; then
@@ -226,6 +228,9 @@ review_platform() {
           commands="brewdo brew"
         fi
       fi
+      ;;
+    freebsd)
+      commands="pip"
       ;;
   esac
 }
@@ -372,6 +377,29 @@ yum_epel_setup() {
     install_epel=1
   fi
   yum_setup "${install_epel}" "${crypto_version}"
+}
+
+pkg_setup() {
+  if [ "${install_curl}" ]; then curl_package="curl"; fi
+
+  packages="
+    gmake
+    git
+    ${curl_package}
+    python
+    py27-pycrypto
+  "
+
+  if [ "${auto}" != "" ]; then
+    assume_yes="ASSUME_ALWAYS_YES=YES"
+  fi
+
+  # shellcheck disable=SC2086
+  {
+    echo "Installing required OS packages:" ${packages}
+    env ${assume_yes} pkg bootstrap
+    pkg install ${quiet} ${auto} ${packages}
+  }
 }
 
 apt_packages() {
@@ -527,6 +555,9 @@ os_setup() {
       brewdo_setup
       # pycrypto needs to be installed via pip
       pycrypto_package="pycrypto"
+      ;;
+    freebsd)
+      pkg_setup
       ;;
   esac
 }
