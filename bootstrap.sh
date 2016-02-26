@@ -186,7 +186,10 @@ review_platform() {
       fi
       ;;
     debian)
-      if [ "${VERSION_ID}" -ge 8 ]; then
+      if [ "${VERSION_ID}" = "" ]; then
+        VERSION_ID="none" # sid/unstable has no version number
+        commands="os pip"
+      elif [ "${VERSION_ID}" -ge 8 ]; then
         commands="os pip"
       elif [ "${VERSION_ID}" -ge 7 ]; then
         commands="pip"
