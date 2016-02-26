@@ -48,7 +48,7 @@ for image in ${images}; do
   for command in os pip; do
     case "${image}" in
       *:*)
-        name=$(echo "${image}-${command}" | sed 's|^[^:]*:||; s|/|-|g;')
+        name=$(echo "${image}-${command}" | sed 's|^[^:]*:||; s|[^a-z0-9]|-|g;')
         ;;
       *)
         name="${image}-${command}"

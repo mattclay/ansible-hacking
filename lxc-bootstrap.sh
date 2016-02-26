@@ -22,7 +22,7 @@ image="$1"
 
 case "${image}" in
   *:*)
-    name=$(echo "${image}-$2" | sed 's|^[^:]*:||; s|/|-|g;')
+    name=$(echo "${image}-$2" | sed 's|^[^:]*:||; s|[^a-z0-9]|-|g;')
     ;;
   *)
     name="${image}-$2"
