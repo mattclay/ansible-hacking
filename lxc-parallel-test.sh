@@ -35,6 +35,8 @@ process_args() {
   if [ "${containers}" = "" ]; then
     help=1
   fi
+
+  container_pids="lxc-parallel-test.pid"
 }
 
 show_help() {
@@ -64,11 +66,13 @@ test_container() {
     ${options} \
     > "${container}.log" 2>&1 &
   pid=$!
-  echo "PID ${pid} is running test of ${container}."
+  echo "${pid}:${container}" >> "${container_pids}"
   pids="${pids} ${pid}"
 }
 
 run_tests() {
+  rm -f "${container_pids}"
+
   for container in ${containers}; do
     test_container
   done
@@ -85,9 +89,11 @@ wait_all() {
       if kill -0 "${pid}" 2> /dev/null; then
         set -- "$@" "${pid}"
       elif wait "${pid}"; then
-        echo "PID ${pid} exited with zero exit status."
+        container=$(grep "^${pid}:" "${container_pids}" | sed "s/^${pid}://;")
+        echo "Container ${container} exited with zero exit status."
       else
-        echo "PID ${pid} exited with non-zero exit status."
+        container=$(grep "^${pid}:" "${container_pids}" | sed "s/^${pid}://;")
+        echo "Container ${container} exited with non-zero exit status."
       fi
     done
     sleep 1

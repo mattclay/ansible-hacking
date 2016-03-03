@@ -44,6 +44,10 @@ for arg in "$@"; do
   esac
 done
 
+container_pids="lxc-parallel-bootstrap.pid"
+
+rm -f "${container_pids}"
+
 for image in ${images}; do
   for command in os pip; do
     name=$(echo "${image}-${command}" | sed 's|^[^:]*:||; s|[^a-z0-9]|-|g;')
@@ -51,7 +55,7 @@ for image in ${images}; do
     # shellcheck disable=SC2086
     "${script_path}/lxc-bootstrap.sh" "${image}" "${command}" ${options} > "${name}.log" 2>&1 &
     pid=$!
-    echo "PID ${pid} is running test of ${name}."
+    echo "${pid}:${name}" >> "${container_pids}"
     pids="${pids} ${pid}"
   done
 done
@@ -63,9 +67,11 @@ wait_all() {
       if kill -0 "${pid}" 2> /dev/null; then
         set -- "$@" "${pid}"
       elif wait "${pid}"; then
-        echo "PID ${pid} exited with zero exit status."
+        container=$(grep "^${pid}:" "${container_pids}" | sed "s/^${pid}://;")
+        echo "Container ${container} exited with zero exit status."
       else
-        echo "PID ${pid} exited with non-zero exit status."
+        container=$(grep "^${pid}:" "${container_pids}" | sed "s/^${pid}://;")
+        echo "Container ${container} exited with non-zero exit status."
       fi
     done
     sleep 1
