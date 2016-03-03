@@ -420,6 +420,7 @@ apt_packages() {
     python-redis \
     python-memcache \
     python-passlib \
+    python-paramiko \
     python-systemd \
     | grep  '^Package: ' \
     | sed 's/^Package: //')
@@ -446,6 +447,7 @@ yum_packages() {
     python-redis \
     python-memcached \
     python-passlib \
+    python-paramiko \
     systemd-python \
     | grep  '^Name *: ' \
     | sed 's/^Name *: //')
@@ -518,6 +520,7 @@ pip_setup() {
     redis
     python-memcached
     passlib
+    paramiko
     ${unittest2_package}
     ${pycrypto_package}
   "
