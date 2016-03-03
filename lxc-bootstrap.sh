@@ -41,7 +41,7 @@ echo "Launching ${name} container from ${image} image."
 lxc launch "${image}" "${name}"
 
 echo "Waiting for networking to come up in ${name} container."
-while ! lxc info "${name}" | grep 'eth0:' > /dev/null 2>&1; do
+while ! lxc info "${name}" | grep 'eth0:\sinet\s' > /dev/null 2>&1; do
   sleep 1
 done
 echo "Networking is up in ${name} container."
