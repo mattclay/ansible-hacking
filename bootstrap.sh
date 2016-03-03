@@ -343,6 +343,8 @@ yum_setup() {
 
   # shellcheck disable=SC2086
   {
+    echo "Updating yum package index ..."
+    ${yum} ${quiet} ${auto} makecache fast
     echo "Installing required OS packages:" ${packages}
     ${yum} ${quiet} ${auto} install ${packages} | tee
   }
