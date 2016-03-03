@@ -27,7 +27,7 @@ args="$*"
 echo "Checking for existing ${name} container."
 if lxc info "${name}" > /dev/null 2>&1; then
   echo "Deleting ${name} container."
-  lxc delete "${name}" > /dev/null 2>&1
+  lxc delete "${name}" --force > /dev/null 2>&1
   echo "Waiting for ${name} container to be deleted."
   while lxc info "${name}" > /dev/null 2>&1; do
     sleep 1
