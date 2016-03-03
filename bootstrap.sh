@@ -445,6 +445,7 @@ yum_packages() {
     python-jinja2 \
     python-nose \
     python-mock \
+    python2-mock \
     python-coverage \
     python-redis \
     python-memcached \
