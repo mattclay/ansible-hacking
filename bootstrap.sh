@@ -487,7 +487,11 @@ brew_setup() {
 
   if [ ! ${have_brew} ]; then
     url="https://raw.githubusercontent.com/Homebrew/install/master/install"
-    ruby -e "$(curl -fsSL "${url}")"
+    if [ "${auto}" != "" ]; then
+      ruby -e "$(curl -fsSL "${url}")" < /dev/null
+    else
+      ruby -e "$(curl -fsSL "${url}")"
+    fi
   fi
 
   brew install python
